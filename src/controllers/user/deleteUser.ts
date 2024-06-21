@@ -1,7 +1,26 @@
 import { Request, Response } from "express";
+import { AppDataSource } from "../../core/db";
+import { User } from "../../entity/User";
 
-const createUser = async (req: Request, res: Response): Promise<void> => {
-  res.status(200).json({ msg: "AAA" });
+const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userRepository = AppDataSource.getRepository(User);
+    const id = parseInt(req.params.id);
+    const userToDelete = await userRepository.findOneBy({ id: id });
+
+    if (!userToDelete) {
+      res.status(404).json({ msg: "User not found" });
+      return;
+    }
+    await userRepository.delete({ id: id });
+
+    res
+      .status(200)
+      .json({ msg: `Successfully deleted user`, user: userToDelete });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Internal server error" });
+  }
 };
 
-export default createUser;
+export default deleteUser;
